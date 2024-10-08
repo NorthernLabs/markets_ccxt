@@ -170,7 +170,7 @@ class alephx(ccxt.async_support.alephx):
         #       }
         createdDateTime = self.safe_string(trade, 'inserted_at')
         traderSide = self.safe_string(trade, 'side')
-        traderOrderId = traderSide == self.safe_string(trade, 'buy_order_id') if 'buy' else self.safe_string(trade, 'sell_order_id')
+        traderOrderId = self.safe_string(trade, 'buy_order_id') if traderSide == 'buy' else self.safe_string(trade, 'sell_order_id')
         return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'order': traderOrderId,

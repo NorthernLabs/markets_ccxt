@@ -140,7 +140,7 @@ class alephx extends alephx$1 {
         //         aggressor_side: 'sell',
         //         id: 'e0b8354a-d71a-4577-bee5-ce52d8fabcf5',
         //         fee: null,
-        //         fee_asset: null
+        //         fee_asset: null,
         //       }
         //     },
         //     topic: 'trades:cb77b9ab-f94d-4013-85b7-644b0b9ba9a9',
@@ -174,7 +174,7 @@ class alephx extends alephx$1 {
         //       }
         const createdDateTime = this.safeString(trade, 'inserted_at');
         const traderSide = this.safeString(trade, 'side');
-        const traderOrderId = traderSide === 'buy' ? this.safeString(trade, 'buy_order_id') : this.safeString(trade, 'sell_order_id');
+        const traderOrderId = (traderSide === 'buy' ? this.safeString(trade, 'buy_order_id') : this.safeString(trade, 'sell_order_id'));
         return this.safeTrade({
             'id': this.safeString(trade, 'id'),
             'order': traderOrderId,
