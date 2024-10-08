@@ -7,6 +7,12 @@ namespace ccxt\abstract;
 
 
 abstract class alephx extends \ccxt\Exchange {
+    public function v1_public_get_system_status($params = array()) {
+        return $this->request('system/status', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 0));
+    }
+    public function v1_private_get_assets_balances($params = array()) {
+        return $this->request('assets/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 0));
+    }
     public function v1_private_get_orders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 0));
     }
@@ -21,6 +27,12 @@ abstract class alephx extends \ccxt\Exchange {
     }
     public function v1_private_patch_orders_id_cancel($params = array()) {
         return $this->request('orders/{id}/cancel', array('v1', 'private'), 'PATCH', $params, null, null, array("cost" => 0));
+    }
+    public function v1PublicGetSystemStatus($params = array()) {
+        return $this->request('system/status', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 0));
+    }
+    public function v1PrivateGetAssetsBalances($params = array()) {
+        return $this->request('assets/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 0));
     }
     public function v1PrivateGetOrders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 0));

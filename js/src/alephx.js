@@ -37,44 +37,33 @@ export default class alephx extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'cancelOrders': true,
-                'closeAllPositions': false,
-                'closePosition': true,
-                'createConvertTrade': true,
-                'createDepositAddress': true,
-                'createLimitBuyOrder': true,
-                'createLimitSellOrder': true,
-                'createMarketBuyOrder': true,
-                'createMarketBuyOrderWithCost': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createLimitBuyOrder': false,
+                'createLimitSellOrder': false,
+                'createMarketBuyOrder': false,
+                'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
-                'createMarketSellOrder': true,
+                'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createPostOnlyOrder': true,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': true,
+                'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
-                'deposit': true,
-                'editOrder': true,
-                'fetchAccounts': true,
+                'deposit': false,
+                'editOrder': false,
+                'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': true,
-                'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
-                'fetchConvertQuote': true,
-                'fetchConvertTrade': true,
-                'fetchConvertTradeHistory': false,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
-                'fetchDeposit': true,
-                'fetchDepositAddress': 'emulated',
+                'fetchBidsAsks': false,
+                'fetchCanceledOrders': false,
+                'fetchCurrencies': false,
+                'fetchDeposit': false,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': true,
-                'fetchDeposits': true,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -83,38 +72,40 @@ export default class alephx extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL2OrderBook': false,
-                'fetchLedger': true,
+                'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': true,
+                'fetchMarkets': false,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': true,
-                'fetchMySells': true,
+                'fetchMyBuys': false,
+                'fetchMySells': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': true,
+                'fetchOpenOrders': false,
                 'fetchOrder': true,
-                'fetchOrderBook': true,
+                'fetchOrderBook': false,
                 'fetchOrders': true,
-                'fetchPosition': true,
+                'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': true,
+                'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTime': true,
-                'fetchTrades': true,
+                'fetchStatus': true,
+                'fetchTicker': false,
+                'fetchTickers': false,
+                'fetchTime': false,
+                'fetchTrades': false,
                 'fetchTradingFee': 'emulated',
-                'fetchTradingFees': true,
-                'fetchWithdrawals': true,
+                'fetchTradingFees': false,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'withdraw': true,
+                'withdraw': false,
             },
             'urls': {
                 // 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -135,8 +126,14 @@ export default class alephx extends Exchange {
             },
             'api': {
                 'v1': {
+                    'public': {
+                        'get': {
+                            'system/status': 0,
+                        },
+                    },
                     'private': {
                         'get': {
+                            'assets/balances': 0,
                             'orders': 0,
                             'orders/{id}': 0,
                             'trades': 0,
@@ -435,6 +432,118 @@ export default class alephx extends Exchange {
                 'currency': this.safeString(trade, 'fee_asset'),
             },
         }, market);
+    }
+    async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alephx#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @see https://api.alephx.xyz/api/v1/trades?filters=[{"field":"order_id","op":"==","value":"order_id"}]
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        const filters = [];
+        const filter = {
+            'field': 'order_id',
+            'op': '==',
+            'value': id,
+        };
+        filters.push(filter);
+        const request = {
+            'filters': JSON.stringify(filters),
+        };
+        const response = await this.v1PrivateGetTrades(request);
+        const trades = this.safeList(response, 'data');
+        const market = undefined;
+        //
+        // { "data": [
+        //   { "id": "32672029-b46b-4139-9779-95444053f40a",
+        //     "status": "unsettled",
+        //     "symbol": "CLEO-ALEO",
+        //     "base_quantity": "0.01",
+        //     "side": "buy",
+        //     "price": "12.3",
+        //     "buy_order_id": "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+        //     "sell_order_id": "86c61562-ff14-43c9-9a03-4be804d184d0",
+        //     "quote_quantity": "0.123",
+        //     "inserted_at": "2024-09-26T15:18:06.603489Z",
+        //     "aggressor_side": "sell",
+        //     "fee": null,
+        //     "fee_asset": null,
+        //     "updated_at": "2024-09-26T15:18:06.603489Z"
+        //  }]}
+        //
+        return this.parseTrades(trades, market, since, limit);
+    }
+    async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name alephx#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://api.alephx.xyz/api/v1/system/status
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.v1PublicGetSystemStatus(params);
+        //
+        // OK
+        //
+        return {
+            'status': (response === 'OK') ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+    async fetchBalance(params = {}) {
+        /**
+         * @method
+         * @name alephxn#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://api.alephx.xyz/api/v1/assets/balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        // await this.loadMarkets ();
+        const response = await this.v1PrivateGetAssetsBalances(params);
+        // [
+        //     {
+        //         "total": "19.996900",
+        //         "available": "14.756900",
+        //         "asset": "CLEO",
+        //         "locked": "5.240000"
+        //     },
+        //     {
+        //         "total": "10.054720",
+        //         "available": "-52.145280",
+        //         "asset": "ALEO",
+        //         "locked": "62.200000"
+        //     }
+        // ]
+        return this.parseBalance(response);
+    }
+    parseBalance(response) {
+        const balances = this.toArray(response);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeString(balance, 'asset');
+            const account = this.account();
+            account['free'] = this.safeString(balance, 'available');
+            account['used'] = this.safeString(balance, 'locked');
+            account['total'] = this.safeString(balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance(result);
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];

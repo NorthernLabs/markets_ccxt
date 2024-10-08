@@ -11,6 +11,16 @@ public partial class alephx : Exchange
 {
     public alephx (object args = null): base(args) {}
 
+    public async Task<object> v1PublicGetSystemStatus (object parameters = null)
+    {
+        return await this.callAsync ("v1PublicGetSystemStatus",parameters);
+    }
+
+    public async Task<object> v1PrivateGetAssetsBalances (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetAssetsBalances",parameters);
+    }
+
     public async Task<object> v1PrivateGetOrders (object parameters = null)
     {
         return await this.callAsync ("v1PrivateGetOrders",parameters);

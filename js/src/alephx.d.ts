@@ -1,5 +1,5 @@
 import Exchange from './abstract/alephx.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Str, Market, Num, Dict, int } from './base/types.js';
+import type { Balances, Int, OrderSide, OrderType, Order, Trade, Str, Market, Num, Dict, int } from './base/types.js';
 /**
  * @class alephx
  * @augments Exchange
@@ -13,6 +13,16 @@ export default class alephx extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchStatus(params?: {}): Promise<{
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

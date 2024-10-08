@@ -6,7 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alephx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Trade
+import json
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderSide, OrderType, Str, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -40,44 +41,33 @@ class alephx(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'cancelOrders': True,
-                'closeAllPositions': False,
-                'closePosition': True,
-                'createConvertTrade': True,
-                'createDepositAddress': True,
-                'createLimitBuyOrder': True,
-                'createLimitSellOrder': True,
-                'createMarketBuyOrder': True,
-                'createMarketBuyOrderWithCost': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
+                'createLimitBuyOrder': False,
+                'createLimitSellOrder': False,
+                'createMarketBuyOrder': False,
+                'createMarketBuyOrderWithCost': False,
                 'createMarketOrderWithCost': False,
-                'createMarketSellOrder': True,
+                'createMarketSellOrder': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createPostOnlyOrder': True,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
-                'createStopLimitOrder': True,
+                'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
-                'deposit': True,
-                'editOrder': True,
-                'fetchAccounts': True,
+                'deposit': False,
+                'editOrder': False,
+                'fetchAccounts': False,
                 'fetchBalance': True,
-                'fetchBidsAsks': True,
-                'fetchBorrowRateHistories': False,
-                'fetchBorrowRateHistory': False,
-                'fetchCanceledOrders': True,
-                'fetchClosedOrders': True,
-                'fetchConvertQuote': True,
-                'fetchConvertTrade': True,
-                'fetchConvertTradeHistory': False,
-                'fetchCrossBorrowRate': False,
-                'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
-                'fetchDeposit': True,
-                'fetchDepositAddress': 'emulated',
+                'fetchBidsAsks': False,
+                'fetchCanceledOrders': False,
+                'fetchCurrencies': False,
+                'fetchDeposit': False,
+                'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': True,
-                'fetchDeposits': True,
+                'fetchDepositAddressesByNetwork': False,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -86,38 +76,40 @@ class alephx(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchL2OrderBook': False,
-                'fetchLedger': True,
+                'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
-                'fetchMarkets': True,
+                'fetchMarkets': False,
                 'fetchMarkOHLCV': False,
-                'fetchMyBuys': True,
-                'fetchMySells': True,
+                'fetchMyBuys': False,
+                'fetchMySells': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': True,
+                'fetchOHLCV': False,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': True,
+                'fetchOpenOrders': False,
                 'fetchOrder': True,
-                'fetchOrderBook': True,
+                'fetchOrderBook': False,
                 'fetchOrders': True,
-                'fetchPosition': True,
+                'fetchOrderTrades': True,
+                'fetchPosition': False,
                 'fetchPositionMode': False,
-                'fetchPositions': True,
+                'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchTime': True,
-                'fetchTrades': True,
+                'fetchStatus': True,
+                'fetchTicker': False,
+                'fetchTickers': False,
+                'fetchTime': False,
+                'fetchTrades': False,
                 'fetchTradingFee': 'emulated',
-                'fetchTradingFees': True,
-                'fetchWithdrawals': True,
+                'fetchTradingFees': False,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'withdraw': True,
+                'withdraw': False,
             },
             'urls': {
                 # 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -138,8 +130,14 @@ class alephx(Exchange, ImplicitAPI):
             },
             'api': {
                 'v1': {
+                    'public': {
+                        'get': {
+                            'system/status': 0,
+                        },
+                    },
                     'private': {
                         'get': {
+                            'assets/balances': 0,
                             'orders': 0,
                             'orders/{id}': 0,
                             'trades': 0,
@@ -421,6 +419,111 @@ class alephx(Exchange, ImplicitAPI):
                 'currency': self.safe_string(trade, 'fee_asset'),
             },
         }, market)
+
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all the trades made from a single order
+        :see: https://api.alephx.xyz/api/v1/trades?filters=[{"field":"order_id","op":"==","value":"order_id"}]
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        filters = []
+        filter: dict = {
+            'field': 'order_id',
+            'op': '==',
+            'value': id,
+        }
+        filters.append(filter)
+        request: dict = {
+            'filters': json.dumps(filters),
+        }
+        response = await self.v1PrivateGetTrades(request)
+        trades = self.safe_list(response, 'data')
+        market = None
+        #
+        # {"data": [
+        #   {"id": "32672029-b46b-4139-9779-95444053f40a",
+        #     "status": "unsettled",
+        #     "symbol": "CLEO-ALEO",
+        #     "base_quantity": "0.01",
+        #     "side": "buy",
+        #     "price": "12.3",
+        #     "buy_order_id": "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+        #     "sell_order_id": "86c61562-ff14-43c9-9a03-4be804d184d0",
+        #     "quote_quantity": "0.123",
+        #     "inserted_at": "2024-09-26T15:18:06.603489Z",
+        #     "aggressor_side": "sell",
+        #     "fee": null,
+        #     "fee_asset": null,
+        #     "updated_at": "2024-09-26T15:18:06.603489Z"
+        #  }]}
+        #
+        return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://api.alephx.xyz/api/v1/system/status
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = await self.v1PublicGetSystemStatus(params)
+        #
+        # OK
+        #
+        return {
+            'status': 'ok' if (response == 'OK') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
+    async def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://api.alephx.xyz/api/v1/assets/balances
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        # await self.load_markets()
+        response = await self.v1PrivateGetAssetsBalances(params)
+        # [
+        #     {
+        #         "total": "19.996900",
+        #         "available": "14.756900",
+        #         "asset": "CLEO",
+        #         "locked": "5.240000"
+        #     },
+        #     {
+        #         "total": "10.054720",
+        #         "available": "-52.145280",
+        #         "asset": "ALEO",
+        #         "locked": "62.200000"
+        #     }
+        # ]
+        return self.parse_balance(response)
+
+    def parse_balance(self, response) -> Balances:
+        balances = self.to_array(response)
+        result: dict = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_string(balance, 'asset')
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

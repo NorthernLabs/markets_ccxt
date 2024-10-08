@@ -38,44 +38,33 @@ class alephx extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'cancelOrders' => true,
-                'closeAllPositions' => false,
-                'closePosition' => true,
-                'createConvertTrade' => true,
-                'createDepositAddress' => true,
-                'createLimitBuyOrder' => true,
-                'createLimitSellOrder' => true,
-                'createMarketBuyOrder' => true,
-                'createMarketBuyOrderWithCost' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
+                'createLimitBuyOrder' => false,
+                'createLimitSellOrder' => false,
+                'createMarketBuyOrder' => false,
+                'createMarketBuyOrderWithCost' => false,
                 'createMarketOrderWithCost' => false,
-                'createMarketSellOrder' => true,
+                'createMarketSellOrder' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createPostOnlyOrder' => true,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
-                'createStopLimitOrder' => true,
+                'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
-                'deposit' => true,
-                'editOrder' => true,
-                'fetchAccounts' => true,
+                'deposit' => false,
+                'editOrder' => false,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => true,
-                'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
-                'fetchCanceledOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchConvertQuote' => true,
-                'fetchConvertTrade' => true,
-                'fetchConvertTradeHistory' => false,
-                'fetchCrossBorrowRate' => false,
-                'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => true,
-                'fetchDeposit' => true,
-                'fetchDepositAddress' => 'emulated',
+                'fetchBidsAsks' => false,
+                'fetchCanceledOrders' => false,
+                'fetchCurrencies' => false,
+                'fetchDeposit' => false,
+                'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
-                'fetchDepositAddressesByNetwork' => true,
-                'fetchDeposits' => true,
+                'fetchDepositAddressesByNetwork' => false,
+                'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -84,38 +73,40 @@ class alephx extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL2OrderBook' => false,
-                'fetchLedger' => true,
+                'fetchLedger' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
-                'fetchMarkets' => true,
+                'fetchMarkets' => false,
                 'fetchMarkOHLCV' => false,
-                'fetchMyBuys' => true,
-                'fetchMySells' => true,
+                'fetchMyBuys' => false,
+                'fetchMySells' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => true,
+                'fetchOHLCV' => false,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenOrders' => true,
+                'fetchOpenOrders' => false,
                 'fetchOrder' => true,
-                'fetchOrderBook' => true,
+                'fetchOrderBook' => false,
                 'fetchOrders' => true,
-                'fetchPosition' => true,
+                'fetchOrderTrades' => true,
+                'fetchPosition' => false,
                 'fetchPositionMode' => false,
-                'fetchPositions' => true,
+                'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
-                'fetchTime' => true,
-                'fetchTrades' => true,
+                'fetchStatus' => true,
+                'fetchTicker' => false,
+                'fetchTickers' => false,
+                'fetchTime' => false,
+                'fetchTrades' => false,
                 'fetchTradingFee' => 'emulated',
-                'fetchTradingFees' => true,
-                'fetchWithdrawals' => true,
+                'fetchTradingFees' => false,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'withdraw' => true,
+                'withdraw' => false,
             ),
             'urls' => array(
                 // 'logo' => 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -136,8 +127,14 @@ class alephx extends Exchange {
             ),
             'api' => array(
                 'v1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'system/status' => 0,
+                        ),
+                    ),
                     'private' => array(
                         'get' => array(
+                            'assets/balances' => 0,
                             'orders' => 0,
                             'orders/{id}' => 0,
                             'trades' => 0,
@@ -441,6 +438,122 @@ class alephx extends Exchange {
                 'currency' => $this->safe_string($trade, 'fee_asset'),
             ),
         ), $market);
+    }
+
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the $trades made from a single order
+             * @see https://api.alephx.xyz/api/v1/trades?$filters=[array("field":"order_id","op":"==","value":"order_id")]
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             */
+            $filters = array();
+            $filter = array(
+                'field' => 'order_id',
+                'op' => '==',
+                'value' => $id,
+            );
+            $filters[] = $filter;
+            $request = array(
+                'filters' => json_encode ($filters),
+            );
+            $response = Async\await($this->v1PrivateGetTrades ($request));
+            $trades = $this->safe_list($response, 'data');
+            $market = null;
+            //
+            // { "data" => [
+            //   array( "id" => "32672029-b46b-4139-9779-95444053f40a",
+            //     "status" => "unsettled",
+            //     "symbol" => "CLEO-ALEO",
+            //     "base_quantity" => "0.01",
+            //     "side" => "buy",
+            //     "price" => "12.3",
+            //     "buy_order_id" => "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+            //     "sell_order_id" => "86c61562-ff14-43c9-9a03-4be804d184d0",
+            //     "quote_quantity" => "0.123",
+            //     "inserted_at" => "2024-09-26T15:18:06.603489Z",
+            //     "aggressor_side" => "sell",
+            //     "fee" => null,
+            //     "fee_asset" => null,
+            //     "updated_at" => "2024-09-26T15:18:06.603489Z"
+            //  )]}
+            //
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_status($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             * @see https://api.alephx.xyz/api/v1/system/status
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+             */
+            $response = Async\await($this->v1PublicGetSystemStatus ($params));
+            //
+            // OK
+            //
+            return array(
+                'status' => ($response === 'OK') ? 'ok' : 'maintenance',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+                'info' => $response,
+            );
+        }) ();
+    }
+
+    public function fetch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://api.alephx.xyz/api/v1/assets/balances
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            // Async\await($this->load_markets());
+            $response = Async\await($this->v1PrivateGetAssetsBalances ($params));
+            // array(
+            //     array(
+            //         "total" => "19.996900",
+            //         "available" => "14.756900",
+            //         "asset" => "CLEO",
+            //         "locked" => "5.240000"
+            //     ),
+            //     {
+            //         "total" => "10.054720",
+            //         "available" => "-52.145280",
+            //         "asset" => "ALEO",
+            //         "locked" => "62.200000"
+            //     }
+            // )
+            return $this->parse_balance($response);
+        }) ();
+    }
+
+    public function parse_balance($response): array {
+        $balances = $this->to_array($response);
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_string($balance, 'asset');
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['total'] = $this->safe_string($balance, 'total');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
