@@ -1266,11 +1266,14 @@ export default class kraken extends krakenRest {
         market = this.safeValue (this.options['marketsByWsName'], wsName, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeString (order, 'vol', amount);
+        amount = this.safeString2 (order, 'volume', 'vol', amount);
         const filled = this.safeString (order, 'vol_exec');
         let fee = undefined;
         const cost = this.safeString (order, 'cost');
-        price = this.safeString (description, 'price', price);
+        price = this.safeString (order, 'price', price);
+        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
+            price = this.safeString (description, 'price', price);
+        }
         if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
             price = this.safeString (description, 'price2');
         }
@@ -1281,17 +1284,13 @@ export default class kraken extends krakenRest {
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
-                const flags = order['oflags'];
                 const feeCost = this.safeString (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
                 };
-                if (flags.indexOf ('fciq') >= 0) {
-                    fee['currency'] = market['quote'];
-                } else if (flags.indexOf ('fcib') >= 0) {
-                    fee['currency'] = market['base'];
-                }
+                // Fee currency should always be in quote
+                fee['currency'] = market['quote'];
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));

@@ -178,6 +178,7 @@ export default class kraken extends Exchange {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
                         'AddExport': 3,
+                        'AmendOrder': 0,
                         'Balance': 3,
                         'CancelAll': 3,
                         'CancelAllOrdersAfter': 3,
@@ -1752,7 +1753,7 @@ export default class kraken extends Exchange {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
-        const clientOrderId = this.safeStringN (order, ['cl_ord_id', 'userref', 'newuserref']);
+        const clientOrderId = this.safeStringN (order, [ 'cl_ord_id', 'userref', 'newuserref' ]);
         const rawTrades = this.safeValue (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -1911,7 +1912,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+         * @see https://docs.kraken.com/api/docs/rest-api/amend-order/
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1932,33 +1933,35 @@ export default class kraken extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request: Dict = {
-            'txid': id,
-            'pair': market['id'],
-        };
+        const request: Dict = { 'txid': id };
+        const clientOrderId = this.safeString2 (params, 'cl_ord_id', 'clientOrderId');
+        params = this.omit (params, [ 'cl_ord_id', 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+        }
         if (amount !== undefined) {
             request['volume'] = this.amountToPrecision (symbol, amount);
+            request['order_qty'] = this.amountToPrecision (symbol, amount);
         }
-        const orderRequest = this.orderRequest ('editOrder', symbol, type, request, amount, price, params);
-        const response = await this.privatePostEditOrder (this.extend (orderRequest[0], orderRequest[1]));
+        if (price !== undefined) {
+            const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+            if (isLimitOrder) {
+                request['limit_price'] = this.priceToPrecision (symbol, price);
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
+        await this.privatePostAmendOrder (this.extend (request, params));
         //
-        //     {
-        //         "error": [],
-        //         "result": {
-        //             "status": "ok",
-        //             "txid": "OAW2BO-7RWEK-PZY5UO",
-        //             "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        //             "volume": "0.00075000",
-        //             "price": "13500.0",
-        //             "orders_cancelled": 1,
-        //             "descr": {
-        //                 "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //             }
-        //         }
-        //     }
+        // {
+        //   "error": [],
+        //   "result": {
+        //     "amend_id": "TEZA4R-DSDGT-IJBOJK"
+        //   }
+        // }
         //
-        const data = this.safeDict (response, 'result', {});
-        return this.parseOrder (data, market);
+        return this.safeOrder ({ 'id': id }, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
