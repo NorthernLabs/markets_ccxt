@@ -1952,7 +1952,7 @@ export default class kraken extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
-        await this.privatePostAmendOrder (this.extend (request, params));
+        const response = await this.privatePostAmendOrder (this.extend (request, params));
         //
         // {
         //   "error": [],
@@ -1961,6 +1961,10 @@ export default class kraken extends Exchange {
         //   }
         // }
         //
+        const error = this.safeList (response, 'error', []);
+        if (error.length > 0) {
+          throw new ExchangeError ('Amend error ' + error.toString ());
+        }
         return this.safeOrder ({ 'id': id }, market);
     }
 

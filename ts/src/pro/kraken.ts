@@ -1265,7 +1265,7 @@ export default class kraken extends krakenRest {
         wsName = this.safeString (description, 'pair', wsName);
         market = this.safeValue (this.options['marketsByWsName'], wsName, market);
         let symbol = undefined;
-        const timestamp = this.safeTimestamp (order, 'opentm');
+        const timestamp = this.safeTimestamp2 (order, 'lastupdated', 'opentm');
         amount = this.safeString2 (order, 'volume', 'vol', amount);
         const filled = this.safeString (order, 'vol_exec');
         let fee = undefined;
