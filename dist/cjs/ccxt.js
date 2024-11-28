@@ -54,6 +54,7 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
+var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
@@ -67,6 +68,7 @@ var currencycom = require('./src/currencycom.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
+var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
@@ -147,8 +149,10 @@ var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
+var coincatch$1 = require('./src/pro/coincatch.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
@@ -196,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.13';
+const version = '4.4.34';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -241,6 +245,7 @@ const exchanges = {
     'coinbaseadvanced': coinbaseadvanced,
     'coinbaseexchange': coinbaseexchange,
     'coinbaseinternational': coinbaseinternational,
+    'coincatch': coincatch,
     'coincheck': coincheck,
     'coinex': coinex,
     'coinlist': coinlist,
@@ -254,6 +259,7 @@ const exchanges = {
     'delta': delta,
     'deribit': deribit,
     'digifinex': digifinex,
+    'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
     'gate': gate,
@@ -336,8 +342,10 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseadvanced': coinbaseadvanced$1,
     'coinbaseexchange': coinbaseexchange$1,
     'coinbaseinternational': coinbaseinternational$1,
+    'coincatch': coincatch$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
     'coinone': coinone$1,
@@ -475,6 +483,7 @@ exports.coinbase = coinbase;
 exports.coinbaseadvanced = coinbaseadvanced;
 exports.coinbaseexchange = coinbaseexchange;
 exports.coinbaseinternational = coinbaseinternational;
+exports.coincatch = coincatch;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
@@ -488,6 +497,7 @@ exports.currencycom = currencycom;
 exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;
+exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
 exports.gate = gate;
