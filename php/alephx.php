@@ -98,6 +98,7 @@ class alephx extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -105,6 +106,9 @@ class alephx extends Exchange {
             ),
             'urls' => array(
                 // 'logo' => 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
+                'test' => array(
+                    'rest' => 'https://api-testnet.alephx.xyz',
+                ),
                 'api' => array(
                     'rest' => 'https://api.alephx.xyz',
                 ),
@@ -404,7 +408,7 @@ class alephx extends Exchange {
         // )
         $createdDateTime = $this->safe_string($trade, 'inserted_at');
         $traderSide = $this->safe_string($trade, 'side');
-        $traderOrderId = $traderSide === 'buy' ? $this->safe_string($trade, 'buy_order_id') : $this->safe_string($trade, 'sell_order_id');
+        $traderOrderId = ($traderSide === 'buy') ? $this->safe_string($trade, 'buy_order_id') : $this->safe_string($trade, 'sell_order_id');
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'id'),
             'order' => $traderOrderId,

@@ -38,6 +38,9 @@ class alephx(ccxt.async_support.alephx):
                 'watchTradesForSymbols': False,
             },
             'urls': {
+                'test': {
+                    'ws': 'wss://api-testnet.alephx.xyz/websocket',
+                },
                 'api': {
                     'ws': 'wss://api.alephx.xyz/websocket',
                 },
@@ -55,9 +58,9 @@ class alephx(ccxt.async_support.alephx):
 
     async def subscribe(self, name: str, isPrivate: bool, symbol=None, params={}):
         """
-         * @ignore
+ @ignore
         subscribes to a websocket channel
-        :see: https://api.alephx.xyz/websocket
+        https://api.alephx.xyz/websocket
         :param str name: the name of the channel
         :param string|str[] [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -91,7 +94,7 @@ class alephx(ccxt.async_support.alephx):
     async def watch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: trades channel
+        trades channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -107,7 +110,7 @@ class alephx(ccxt.async_support.alephx):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: orders channel
+        orders channel
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -137,7 +140,7 @@ class alephx(ccxt.async_support.alephx):
         #         aggressor_side: 'sell',
         #         id: 'e0b8354a-d71a-4577-bee5-ce52d8fabcf5',
         #         fee: null,
-        #         fee_asset: null
+        #         fee_asset: null,
         #       }
         #     },
         #     topic: 'trades:cb77b9ab-f94d-4013-85b7-644b0b9ba9a9',
@@ -170,7 +173,7 @@ class alephx(ccxt.async_support.alephx):
         #       }
         createdDateTime = self.safe_string(trade, 'inserted_at')
         traderSide = self.safe_string(trade, 'side')
-        traderOrderId = self.safe_string(trade, 'buy_order_id') if traderSide == 'buy' else self.safe_string(trade, 'sell_order_id')
+        traderOrderId = self.safe_string(trade, 'buy_order_id') if (traderSide == 'buy') else self.safe_string(trade, 'sell_order_id')
         return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'order': traderOrderId,

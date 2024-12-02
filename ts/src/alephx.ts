@@ -101,6 +101,7 @@ export default class alephx extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -108,6 +109,9 @@ export default class alephx extends Exchange {
             },
             'urls': {
                 // 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
+                'test': {
+                    'rest': 'https://api-testnet.alephx.xyz',
+                },
                 'api': {
                     'rest': 'https://api.alephx.xyz',
                 },
@@ -417,7 +421,7 @@ export default class alephx extends Exchange {
         // ]
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
-        const traderOrderId = traderSide === 'buy' ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
+        const traderOrderId = (traderSide === 'buy') ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'order': traderOrderId,

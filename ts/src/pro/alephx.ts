@@ -34,6 +34,9 @@ export default class alephx extends alephxRest {
                 'watchTradesForSymbols': false,
             },
             'urls': {
+                'test': {
+                    'ws': 'wss://api-testnet.alephx.xyz/websocket',
+                },
                 'api': {
                     'ws': 'wss://api.alephx.xyz/websocket',
                 },
@@ -181,7 +184,7 @@ export default class alephx extends alephxRest {
         //       }
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
-        const traderOrderId = (traderSide === 'buy' ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id'));
+        const traderOrderId = (traderSide === 'buy') ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'order': traderOrderId,

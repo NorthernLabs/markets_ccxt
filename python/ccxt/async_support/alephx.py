@@ -106,6 +106,7 @@ class alephx(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -113,6 +114,9 @@ class alephx(Exchange, ImplicitAPI):
             },
             'urls': {
                 # 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
+                'test': {
+                    'rest': 'https://api-testnet.alephx.xyz',
+                },
                 'api': {
                     'rest': 'https://api.alephx.xyz',
                 },
@@ -167,7 +171,7 @@ class alephx(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create an order
-        :see: POST https://api.alephx.xyz/api/v1/orders
+        POST https://api.alephx.xyz/api/v1/orders
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -269,7 +273,7 @@ class alephx(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: PATCH https://api.alephx.xyz/api/v1/orders/{order_id}/cancel
+        PATCH https://api.alephx.xyz/api/v1/orders/{order_id}/cancel
         :param str id: order id
         :param str symbol: not used by alephx cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -294,7 +298,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: GET https://api.alephx.xyz/api/v1/orders/{order_id}
+        GET https://api.alephx.xyz/api/v1/orders/{order_id}
         :param str id: the order id
         :param str symbol: unified market symbol that the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -314,7 +318,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: GET https://api.alephx.xyz/api/v1/orders/
+        GET https://api.alephx.xyz/api/v1/orders/
         :param str symbol: unified market symbol that the orders were made in
         :param int [since]: the earliest time in ms to fetch orders
         :param int [limit]: the maximum number of order structures to retrieve
@@ -330,7 +334,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: GET https://api.alephx.xyz/api/v1/trades
+        GET https://api.alephx.xyz/api/v1/trades
         :param str symbol: unified market symbol of the trades
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: the maximum number of trade structures to fetch
@@ -400,7 +404,7 @@ class alephx(Exchange, ImplicitAPI):
         # ]
         createdDateTime = self.safe_string(trade, 'inserted_at')
         traderSide = self.safe_string(trade, 'side')
-        traderOrderId = traderSide == self.safe_string(trade, 'buy_order_id') if 'buy' else self.safe_string(trade, 'sell_order_id')
+        traderOrderId = self.safe_string(trade, 'buy_order_id') if (traderSide == 'buy') else self.safe_string(trade, 'sell_order_id')
         return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'order': traderOrderId,
@@ -423,7 +427,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://api.alephx.xyz/api/v1/trades?filters=[{"field":"order_id","op":"==","value":"order_id"}]
+        https://api.alephx.xyz/api/v1/trades?filters=[{"field":"order_id","op":"==","value":"order_id"}]
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -467,7 +471,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://api.alephx.xyz/api/v1/system/status
+        https://api.alephx.xyz/api/v1/system/status
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -486,7 +490,7 @@ class alephx(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://api.alephx.xyz/api/v1/assets/balances
+        https://api.alephx.xyz/api/v1/assets/balances
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
