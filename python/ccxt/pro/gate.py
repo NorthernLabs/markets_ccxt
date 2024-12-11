@@ -374,14 +374,14 @@ class gate(ccxt.async_support.gate):
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', '100ms')
+        interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', '1000ms')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_book_update'
         messageHash = 'orderbook' + ':' + symbol
         url = self.get_url_by_market(market)
         payload = [marketId, interval]
         if limit is None:
-            limit = 100
+            limit = 5
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
