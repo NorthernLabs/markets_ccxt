@@ -1669,6 +1669,7 @@ export default class kraken extends Exchange {
      * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
      * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
      * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+     * @param {int} [params.leverage] the leverage level to use
      * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2298,6 +2299,10 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
+        const error = this.safeList (response, 'error', []);
+        if (error.length > 0) {
+          throw new ExchangeError ('Amend error ' + error.toString ());
+        }
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
