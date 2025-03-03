@@ -6,6 +6,7 @@ import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 declare const version = "4.4.64";
 import ace from './src/ace.js';
+import alephx from './src/alephx.js';
 import alpaca from './src/alpaca.js';
 import ascendex from './src/ascendex.js';
 import bequant from './src/bequant.js';
@@ -114,6 +115,7 @@ import xt from './src/xt.js';
 import yobit from './src/yobit.js';
 import zaif from './src/zaif.js';
 import zonda from './src/zonda.js';
+import alephxPro from './src/pro/alephx.js';
 import alpacaPro from './src/pro/alpaca.js';
 import ascendexPro from './src/pro/ascendex.js';
 import bequantPro from './src/pro/bequant.js';
@@ -189,6 +191,7 @@ import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
 declare const exchanges: {
     ace: typeof ace;
+    alephx: typeof alephx;
     alpaca: typeof alpaca;
     ascendex: typeof ascendex;
     bequant: typeof bequant;
@@ -299,6 +302,7 @@ declare const exchanges: {
     zonda: typeof zonda;
 };
 declare const pro: {
+    alephx: typeof alephxPro;
     alpaca: typeof alpacaPro;
     ascendex: typeof ascendexPro;
     bequant: typeof bequantPro;
@@ -379,6 +383,7 @@ declare const ccxt: {
     Precise: typeof Precise;
     exchanges: string[];
     pro: {
+        alephx: typeof alephxPro;
         alpaca: typeof alpacaPro;
         ascendex: typeof ascendexPro;
         bequant: typeof bequantPro;
@@ -455,6 +460,7 @@ declare const ccxt: {
     };
 } & {
     ace: typeof ace;
+    alephx: typeof alephx;
     alpaca: typeof alpaca;
     ascendex: typeof ascendex;
     bequant: typeof bequant;

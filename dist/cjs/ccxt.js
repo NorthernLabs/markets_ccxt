@@ -13,6 +13,7 @@ var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var ace = require('./src/ace.js');
+var alephx = require('./src/alephx.js');
 var alpaca = require('./src/alpaca.js');
 var ascendex = require('./src/ascendex.js');
 var bequant = require('./src/bequant.js');
@@ -121,6 +122,7 @@ var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
+var alephx$1 = require('./src/pro/alephx.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -201,6 +203,7 @@ const version = '4.4.64';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
+    'alephx': alephx,
     'alpaca': alpaca,
     'ascendex': ascendex,
     'bequant': bequant,
@@ -311,6 +314,7 @@ const exchanges = {
     'zonda': zonda,
 };
 const pro = {
+    'alephx': alephx$1,
     'alpaca': alpaca$1,
     'ascendex': ascendex$1,
     'bequant': bequant$1,
@@ -436,6 +440,7 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.ace = ace;
+exports.alephx = alephx;
 exports.alpaca = alpaca;
 exports.ascendex = ascendex;
 exports.bequant = bequant;

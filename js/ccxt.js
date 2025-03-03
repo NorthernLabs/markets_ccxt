@@ -42,6 +42,7 @@ const version = '4.4.64';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
+import alephx from './src/alephx.js';
 import alpaca from './src/alpaca.js';
 import ascendex from './src/ascendex.js';
 import bequant from './src/bequant.js';
@@ -151,6 +152,7 @@ import yobit from './src/yobit.js';
 import zaif from './src/zaif.js';
 import zonda from './src/zonda.js';
 // pro exchanges
+import alephxPro from './src/pro/alephx.js';
 import alpacaPro from './src/pro/alpaca.js';
 import ascendexPro from './src/pro/ascendex.js';
 import bequantPro from './src/pro/bequant.js';
@@ -226,6 +228,7 @@ import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
 const exchanges = {
     'ace': ace,
+    'alephx': alephx,
     'alpaca': alpaca,
     'ascendex': ascendex,
     'bequant': bequant,
@@ -336,6 +339,7 @@ const exchanges = {
     'zonda': zonda,
 };
 const pro = {
+    'alephx': alephxPro,
     'alpaca': alpacaPro,
     'ascendex': ascendexPro,
     'bequant': bequantPro,
