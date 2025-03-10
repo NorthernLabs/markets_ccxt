@@ -548,12 +548,6 @@ export default class ndax extends ndaxRest {
             'AccountPositionEvent': this.handleBalance,
             'OrderStateEvent': this.handleOrders,
             'OrderTradeEvent': this.handleMyTrades,
-            // TODO: Find out if we need to handle these or if OrderStateEvent will cover this.
-            //'CancelAllOrdersRejectEvent': this.handleNull,
-            //'CancelOrderRejectEvent': this.handleNull,
-            //'CancelReplaceOrderRejectEvent': this.handleNull,
-            //'MarketStateUpdate': this.handleNull,
-            //'NewOrderRejectEvent': this.handleNull,
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
