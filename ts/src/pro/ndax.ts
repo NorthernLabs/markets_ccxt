@@ -779,7 +779,7 @@ export default class ndax extends ndaxRest {
         //     "Direction":"NoChange" //"Uptick", "Downtick", "NoChange"
         // }
         //
-        const messageHash = "balance"
+        const messageHash = "myTrades"
         const payload = this.safeValue (message, 'o', []);
         const trade = this.parseTrade (payload);
         client.resolve([trade], messageHash);
