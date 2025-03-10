@@ -2,8 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import ndaxRest from '../ndax.js';
+import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances, Order, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -533,6 +535,7 @@ export default class ndax extends ndaxRest {
         }
         message['o'] = JSON.parse (payload);
         const methods: Dict = {
+            'AuthenticateUser': this.handleAuthenticate,
             'SubscribeLevel2': this.handleSubscriptionStatus,
             'SubscribeLevel1': this.handleTicker,
             'Level2UpdateEvent': this.handleOrderBook,
@@ -541,11 +544,244 @@ export default class ndax extends ndaxRest {
             'TradeDataUpdateEvent': this.handleTrades,
             'SubscribeTicker': this.handleOHLCV,
             'TickerDataUpdateEvent': this.handleOHLCV,
+            'SubscribeAccountEvents': this.handleSubscribeAccountEvents,
+            'AccountPositionEvent': this.handleBalance,
+            'OrderStateEvent': this.handleOrders,
+            'OrderTradeEvent': this.handleMyTrades,
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
         }
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const name = 'AuthenticateUser';
+        const messageHash = 'authenticated';
+        const url = this.urls['api']['ws']
+        const client = this.client (url);
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const nonce = this.nonce ().toString ();
+            const auth = nonce + this.uid + this.apiKey;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            const requestId = this.requestId ();
+            const payload: Dict = {
+                'APIKey': this.apiKey,
+                'Signature': signature,
+                'UserId': this.uid,
+                'Nonce': nonce,
+            };
+            const request: Dict = {
+                'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+                'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+                'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
+                'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
+            };
+            this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
+    }
+
+    handleAuthenticate (client: Client, message) {
+        //
+        // {
+        //     "m":1,
+        //     "i":1,
+        //     "n":"AuthenticateUser",
+        //     "o":"{
+        //             "Authenticated":true,
+        //             "SessionToken":"asdf",
+        //             "User":{
+        //                "UserId":123456,
+        //                "UserName":"ndax1234",
+        //                "Email":"foo@bar.com",
+        //                "EmailVerified":true,
+        //                "AccountId":987654,
+        //                "OMSId":1,
+        //                "Use2FA":true
+        //             },
+        //             "Locked":false,
+        //             "Requires2FA":false,
+        //             "EnforceEnable2FA":false,
+        //             "TwoFAType":null,
+        //             "TwoFAToken":null,
+        //             "errormsg":null
+        //         }"
+        // }
+        const payload = this.safeValue (message, 'o', []);
+        if (payload["Authenticated"] == true) {
+            const promise = client.futures['authenticated'];
+            promise.resolve (message);
+            return;
+        }
+        throw new AuthenticationError (this.id + ' failed to authenticate.');
+    }
+
+    async watchAccountEvents (messageHash, params = {}) {
+        // This function is used to by watchBalance, watchOrders, and watchMyTrades
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        await this.authenticate ();
+        const omsId = this.safeInteger (this.options, 'omsId', 1);
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
+        let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        if (accountId === undefined) {
+            accountId = parseInt (this.accounts[0]['id']);
+        }
+        const name = 'SubscribeAccountEvents';
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId ();
+        const payload: Dict = {
+            'AccountId': accountId,
+            'OMSId': omsId,
+        };
+        const request: Dict = {
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
+            'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, name);
+    }
+
+    handleSubscribeAccountEvents (client: Client, message) {
+        //
+        // {
+        //     "m":1,
+        //     "i":2,
+        //     "n":"SubscribeAccountEvents",
+        //     "o":"{ "Subscribed": true }"
+        //  }
+        const payload = this.safeValue (message, 'o', []); 
+        if (payload["Subscribed"] != true) {
+            throw new ExchangeError (this.id + ' failed to subscribe to account events.');
+        }
+    }
+
+    /**
+     * @method
+     * @name ndax#watchBalance
+     * @description subscribe to balance for an account
+     * @see https://apidoc.ndax.io/#subscribeaccountevents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        return await this.watchAccountEvents ("balance", params);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // {
+        //     "OMSId":4, //The OMSId. [Integer]
+        //     "AccountId":4, // account id number. [Integer]
+        //     "ProductSymbol":"BTC", //The Product Symbol for this balance message. [String]
+        //     "ProductId":1, //The Product Id for this balance message. [Integer]
+        //     "Amount":10499.1,  //The total balance in the account for the specified product. [Dec]
+        //     "Hold": 2.1,  //The total amount of the balance that is on hold. Your available                          //balance for trading and withdraw is (Amount - Hold). [Decimal]
+        //     "PendingDeposits":0, //Total Deposits Pending for the specified product. [Decimal]
+        //     "PendingWithdraws":0, //Total Withdrawals Pending for the specified product. [Decimal]
+        //     "TotalDayDeposits":0, //The total 24-hour deposits for the specified product. UTC. [Dec]
+        //     "TotalDayWithdraws":0 //The total 24-hour withdraws for the specified product. UTC [Dec]
+        // }
+        //
+        const messageHash = "balance"
+        const payload = this.safeValue (message, 'o', []);
+        const balance = this.parseBalance ([payload]);
+        client.resolve(balance, messageHash);
+    }
+
+    /**
+     * @method
+     * @name ndax#watchOrders
+     * @description subscribe to orders for an account
+     * @see https://apidoc.ndax.io/#subscribeaccountevents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (params = {}): Promise<Order[]> {
+        return await this.watchAccountEvents ("orders", params);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        // {
+        //     "Side":"Sell",
+        //         // The side of your order. [String] Values are "Sell", 
+        //         // "Buy", "Short"
+        //     "OrderId": 9849, //The Server-Assigned Order Id. [64-bit Integer]
+        //     "Price": 97, //The Price of your order. [Decimal]
+        //     "Quantity":1,
+        //         // The Quantity (Remaining if partially or fully executed) of 
+        //         // your order. [Decimal]
+        //     "Instrument":1, // The InstrumentId your order is for. [Integer]
+        //     "Account":4, // Your AccountId [Integer]
+        //     "OrderType":"Limit",
+        //         // The type of order. [String] Values are "Market", "Limit",
+        //         // "StopMarket", "StopLimit", "TrailingStopMarket", and
+        //         // "TrailingStopLimit"
+        //     "ClientOrderId":0, // Your client order id. [64-bit Integer]
+        //     "OrderState":"Working", // The current state of the order. [String]
+        //             // Values are "Working", "Rejected", "FullyExecuted", "Canceled",
+        //             // "Expired"
+        //     "ReceiveTime":0, // Timestamp in POSIX format
+        //     "OrigQuantity":1, // The original quantity of your order. [Decimal]
+        //     "QuantityExecuted":0, // The total executed quantity. [Decimal]
+        //     "AvgPrice":0, // Avergage executed price. [Decimal]
+        //     "ChangeReason":"NewInputAccepted"
+        //         // The reason for the order state change. [String] Values are 
+        //         // "NewInputAccepted", "NewInputRejected", "OtherRejected",
+        //         // "Expired", "Trade", SystemCanceled BelowMinimum", 
+        //         // "SystemCanceled NoMoreMarket", "UserModified"
+        // }
+        //
+        const messageHash = "orders"
+        const payload = this.safeValue (message, 'o', []);
+        const order = this.parseOrder (payload);
+        client.resolve([order], messageHash);
+    }
+
+    /**
+     * @method
+     * @name ndax#watchMyTrades
+     * @description subscribe to trades made by an account
+     * @see https://apidoc.ndax.io/#subscribeaccountevents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (params = {}): Promise<Trade[]> {
+        return await this.watchAccountEvents ("myTrades", params);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        // {
+        //     "OMSId":1, //OMS Id [Integer]
+        //     "TradeId":213, //Trade Id [64-bit Integer]
+        //     "OrderId":9848, //Order Id [64-bit Integer]
+        //     "AccountId":4, //Your Account Id [Integer]
+        //     "ClientOrderId":0, //Your client order id. [64-bit Integer]
+        //     "InstrumentId":1, //Instrument Id [Integer]
+        //     "Side":"Buy", //[String] Values are "Buy", "Sell", "Short" (future)
+        //     "Quantity":0.01, //Quantity [Decimal]
+        //     "Price":95,  //Price [Decimal]
+        //     "Value":0.95,  //Value [Decimal]
+        //     "TradeTime":635978008210426109, // TimeStamp in Microsoft ticks format
+        //     "ContraAcctId":3,
+        //         // The Counterparty of the trade. The counterparty is always 
+        //         // the clearing account. [Integer]
+        //     "OrderTradeRevision":1, //Usually 1 
+        //     "Direction":"NoChange" //"Uptick", "Downtick", "NoChange"
+        // }
+        //
+        const messageHash = "myTrades"
+        const payload = this.safeValue (message, 'o', []);
+        const trade = this.parseTrade (payload);
+        client.resolve([trade], messageHash);
     }
 }
