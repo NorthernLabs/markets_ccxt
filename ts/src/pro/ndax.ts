@@ -544,16 +544,16 @@ export default class ndax extends ndaxRest {
             'TradeDataUpdateEvent': this.handleTrades,
             'SubscribeTicker': this.handleOHLCV,
             'TickerDataUpdateEvent': this.handleOHLCV,
-            // TODO COLIN
             'SubscribeAccountEvents': this.handleSubscribeAccountEvents,
             'AccountPositionEvent': this.handleBalance,
+            'OrderStateEvent': this.handleOrders,
+            'OrderTradeEvent': this.handleMyTrades,
+            // TODO: Find out if we need to handle these or if OrderStateEvent will cover this.
             //'CancelAllOrdersRejectEvent': this.handleNull,
             //'CancelOrderRejectEvent': this.handleNull,
             //'CancelReplaceOrderRejectEvent': this.handleNull,
             //'MarketStateUpdate': this.handleNull,
             //'NewOrderRejectEvent': this.handleNull,
-            'OrderStateEvent': this.handleOrders,
-            'OrderTradeEvent': this.handleMyTrades,
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
