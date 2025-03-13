@@ -1729,22 +1729,21 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
-        // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-        // params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        params = this.omit (params, [ 'accountId', 'AccountId' ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request: Dict = {
             'omsId': omsId,
-            // 'AccountId': accountId,
+            'AccountId': accountId,
         };
+        request['OrderId'] = parseInt (id);
         const clientOrderId = this.safeInteger2 (params, 'clientOrderId', 'ClOrderId');
         if (clientOrderId !== undefined) {
             request['ClOrderId'] = clientOrderId;
-        } else {
-            request['OrderId'] = parseInt (id);
         }
         params = this.omit (params, [ 'clientOrderId', 'ClOrderId' ]);
         const response = await this.privatePostCancelOrder (this.extend (request, params));
