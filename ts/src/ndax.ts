@@ -348,7 +348,6 @@ export default class ndax extends Exchange {
                 'uid': true,
                 // these credentials are required for signIn() and withdraw()
                 'login': true,
-                'password': true,
                 // 'twofa': true,
             },
             'precisionMode': TICK_SIZE,
