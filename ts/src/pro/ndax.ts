@@ -581,7 +581,13 @@ export default class ndax extends ndaxRest {
                 'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
                 'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
             };
-            this.watch (url, messageHash, request, messageHash, future);
+            const subscription: Dict = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'name': name,
+                'params': params,
+            };
+            this.watch (url, messageHash, request, messageHash, subscription);
         }
         return await future;
     }
@@ -645,8 +651,14 @@ export default class ndax extends ndaxRest {
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
+        const subscription: Dict = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'name': name,
+            'params': params,
+        };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, name);
+        return await this.watch (url, messageHash, message, name, subscription);
     }
 
     handleSubscribeAccountEvents (client: Client, message) {
