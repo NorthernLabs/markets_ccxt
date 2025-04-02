@@ -34,6 +34,9 @@ export default class ndax extends ndaxRest {
             //     'ordersLimit': 1000,
             //     'OHLCVLimit': 1000,
             // },
+            'streaming': {
+                'ping': this.ping,
+            },
         });
     }
 
@@ -548,12 +551,32 @@ export default class ndax extends ndaxRest {
             'AccountPositionEvent': this.handleBalance,
             'OrderStateEvent': this.handleOrders,
             'OrderTradeEvent': this.handleMyTrades,
+            'Ping': this.handlePong,
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
         }
+    }
+
+    ping (client: Client) {
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': 'Ping', // function name is the name of the function being called or that the server is responding to, the server echoes your call
+            'o': '{ }', // JSON-formatted string containing the data being sent with the message
+        };
+        return request;
+    }
+
+    handlePong (client: Client, message) {
+        //
+        // PONG
+        //
+        client.lastPong = this.milliseconds ();
+        return message;
     }
 
     async authenticate (params = {}) {
