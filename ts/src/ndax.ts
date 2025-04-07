@@ -1851,7 +1851,8 @@ export default class ndax extends Exchange {
         await this.loadAccounts ();
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
+        params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1875,6 +1876,9 @@ export default class ndax extends Exchange {
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
+        }
+        if (clientOrderId !== undefined) {
+            request['ClientOrderId'] = clientOrderId;
         }
         const response = await this.privateGetGetOrdersHistory (this.extend (request, params));
         //
