@@ -224,7 +224,7 @@ export default class binance extends Exchange {
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivateV3': 'https://fapi.binance.com/fapi/v3',
                     'fapiData': 'https://fapi.binance.com/futures/data',
-                    'public': 'https://api.binance.com/api/v3',
+                    'public': 'https://data-api.binance.vision/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                     'papi': 'https://papi.binance.com/papi/v1',
@@ -1268,8 +1268,8 @@ export default class binance extends Exchange {
                 'fetchMargins': true,
                 'fetchMarkets': [
                     'spot', // allows CORS in browsers
-                    'linear', // allows CORS in browsers
-                    'inverse', // allows CORS in browsers
+                    // 'linear', // allows CORS in browsers
+                    // 'inverse', // allows CORS in browsers
                     // 'option', // does not allow CORS, enable outside of the browser only
                 ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
