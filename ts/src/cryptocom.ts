@@ -1350,6 +1350,10 @@ export default class cryptocom extends Exchange {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'ClientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+        }
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
@@ -1559,6 +1563,10 @@ export default class cryptocom extends Exchange {
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'ClientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
         }
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
