@@ -2484,20 +2484,20 @@ export default class ndax extends Exchange {
         //     }
         //
         const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
-        let firstTemplateType = this.safeValue (templateTypes, 0);
+        let templateType = undefined;
         if (expectedTemplateName !== undefined) {
-          firstTemplateType = this.findTemplate (templateTypes, expectedTemplateName);
+          templateType = this.findTemplate (templateTypes, expectedTemplateName);
         }
-        if (firstTemplateType === undefined) {
+        if (templateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }
-        const templateName = this.safeString (firstTemplateType, 'TemplateName');
+        const templateName = this.safeString (templateType, 'TemplateName');
         const withdrawTemplateRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateType': templateName,
-            'AccountProviderId': firstTemplateType['AccountProviderId'],
+            'AccountProviderId': templateType['AccountProviderId'],
         };
         const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
