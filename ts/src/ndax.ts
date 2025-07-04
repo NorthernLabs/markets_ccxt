@@ -2461,11 +2461,7 @@ export default class ndax extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        // this method required login, password and twofa key
-        const sessionToken = this.safeString (this.options, 'sessionToken');
-        if (sessionToken === undefined) {
-            throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
-        }
+        // withdraw method only requires twofa
         if (this.twofa === undefined) {
             throw new AuthenticationError (this.id + ' withdraw() requires exchange.twofa credentials');
         }
@@ -2475,7 +2471,8 @@ export default class ndax extends Exchange {
         await this.loadAccounts ();
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        const expectedTemplateName = this.safeString (params, 'templateName');
+        params = this.omit (params, [ 'accountId', 'AccountId', 'templateName' ]);
         const currency = this.currency (code);
         const withdrawTemplateTypesRequest: Dict = {
             'omsId': omsId,
@@ -2496,17 +2493,20 @@ export default class ndax extends Exchange {
         //     }
         //
         const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
-        const firstTemplateType = this.safeValue (templateTypes, 0);
-        if (firstTemplateType === undefined) {
+        let templateType = undefined;
+        if (expectedTemplateName !== undefined) {
+          templateType = this.findTemplate (templateTypes, expectedTemplateName);
+        }
+        if (templateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }
-        const templateName = this.safeString (firstTemplateType, 'TemplateName');
+        const templateName = this.safeString (templateType, 'TemplateName');
         const withdrawTemplateRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateType': templateName,
-            'AccountProviderId': firstTemplateType['AccountProviderId'],
+            'AccountProviderId': templateType['AccountProviderId'],
         };
         const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
@@ -2523,15 +2523,20 @@ export default class ndax extends Exchange {
         }
         const withdrawTemplate = JSON.parse (template);
         withdrawTemplate['ExternalAddress'] = address;
+        withdrawTemplate['UserId'] = this.uid;
         if (tag !== undefined) {
             if ('Memo' in withdrawTemplate) {
                 withdrawTemplate['Memo'] = tag;
+            }
+            if ('Tag' in withdrawTemplate) {
+                withdrawTemplate['Tag'] = tag;
             }
         }
         const withdrawPayload: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
+            'Amount': amount,
             'TemplateForm': this.json (withdrawTemplate),
             'TemplateType': templateName,
         };
@@ -2621,5 +2626,16 @@ export default class ndax extends Exchange {
             throw new ExchangeError (feedback);
         }
         return undefined;
+    }
+
+    findTemplate (templates: any, templateName: string) {
+      for (let i = 0; i < templates.length; i++) {
+          const template = templates[i];
+          const currTemplateName = this.safeString (template, 'TemplateName')
+          if (currTemplateName === templateName) {
+              return template;
+          }
+      }
+      return undefined;
     }
 }
