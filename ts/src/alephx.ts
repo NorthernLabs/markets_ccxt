@@ -165,6 +165,7 @@ export default class alephx extends Exchange {
                 'XBTC': 'BTC',
                 'XETH': 'ETH',
                 'XUSDC': 'USDC',
+                'XUSDT': 'USDT',
             },
         });
     }
@@ -271,14 +272,16 @@ export default class alephx extends Exchange {
          * @param {string} [params.idempotencyKey] uuid for idempotency key
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'gtc');
         const request: Dict = {
             'symbol': symbol,
             'type': type,
             'side': side,
             'quantity': amount.toString (),
             'price': price.toString (),
-            'time_in_force': this.safeString2 (params, 'timeInForce', 'gtc'),
-            'idempotency_key': this.safeString2 (params, 'idempotencyKey', this.uuid ()),
+            'time_in_force': timeInForce,
+            'idempotency_key': clientOrderId,
         };
         const response = await this.v1PrivatePostOrders (request);
         //
@@ -342,7 +345,7 @@ export default class alephx extends Exchange {
             'lastTradeTimestamp': filledDateTime ? this.parse8601 (filledDateTime) : undefined,
             'symbol': this.safeString (order, 'symbol'),
             'type': this.safeString (order, 'type'),
-            'timeInForce': this.safeString (order, 'time_in_force', 'gtc'),
+            'timeInForce': this.safeString (order, 'time_in_force', 'GTC'),
             'postOnly': true,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
@@ -353,13 +356,30 @@ export default class alephx extends Exchange {
             'remaining': this.safeString (order, 'remained_quantity'),
             'cost': undefined,
             'average': this.safeString (order, 'average_filled_price'),
-            'status': this.safeString (order, 'status'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'cost': this.safeString (order, 'cumulative_fee'),
                 'currency': this.safeString (order, 'fee_asset'),
             },
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'pending_new': 'open',
+            'new': 'open',
+            'pending': 'open',
+            'partially_filled': 'open',
+            'pending_cancel': 'open',
+            'canceled': 'canceled',
+            'canceled_partially_filled': 'canceled',
+            'rejected': 'rejected',
+            'failed': 'rejected',
+            'filled': 'closed',
+            'settled': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -611,7 +631,6 @@ export default class alephx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        // await this.loadMarkets ();
         const response = await this.v1PrivateGetAssetsBalances (params);
         // [
         //     {

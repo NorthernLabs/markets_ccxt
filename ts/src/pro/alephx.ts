@@ -297,7 +297,7 @@ export default class alephx extends alephxRest {
             'datetime': createdDateTime,
             'lastTradeTimestamp': filledDateTime ? this.parse8601 (filledDateTime) : undefined,
             'type': this.safeString (order, 'type'),
-            'timeInForce': this.safeString (order, 'time_in_force', 'gtc'),
+            'timeInForce': this.safeString (order, 'time_in_force', 'GTC'),
             'postOnly': true,
             'side': this.safeString (order, 'side'),
             'price': this.safeString (order, 'price'),
@@ -308,7 +308,7 @@ export default class alephx extends alephxRest {
             'average': this.safeString (order, 'average_filled_price'),
             'filled': this.safeString (order, 'filled_quantity'),
             'remaining': this.safeString (order, 'remained_quantity'),
-            'status': this.safeStringLower (order, 'status'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'cost': this.safeString (order, 'cumulative_fee'),
                 'currency': this.safeString (market, 'fee_asset'),
