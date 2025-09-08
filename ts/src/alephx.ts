@@ -272,10 +272,12 @@ export default class alephx extends Exchange {
          * @param {string} [params.idempotencyKey] uuid for idempotency key
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const timeInForce = this.safeString2 (params, 'timeInForce', 'gtc');
         const request: Dict = {
-            'symbol': symbol,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'quantity': amount.toString (),
@@ -297,7 +299,7 @@ export default class alephx extends Exchange {
             const errorMessage = this.safeString (errorResponse, 'message');
             throw new ExchangeError (errorReason + '' + errorMessage);
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -334,6 +336,9 @@ export default class alephx extends Exchange {
         //     "internal_status": "partially_filled"
         // }
         //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (order, 'inserted_at');
         const filledDateTime = this.safeString (order, 'filled_at');
         return this.safeOrder ({
@@ -343,7 +348,7 @@ export default class alephx extends Exchange {
             'timestamp': createdDateTime ? this.parse8601 (createdDateTime) : undefined,
             'datetime': createdDateTime,
             'lastTradeTimestamp': filledDateTime ? this.parse8601 (filledDateTime) : undefined,
-            'symbol': this.safeString (order, 'symbol'),
+            'symbol': symbol,
             'type': this.safeString (order, 'type'),
             'timeInForce': this.safeString (order, 'time_in_force', 'GTC'),
             'postOnly': true,
@@ -393,6 +398,7 @@ export default class alephx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
         const request: Dict = {
             'id': id, // order id
         };
@@ -409,7 +415,8 @@ export default class alephx extends Exchange {
                 throw new ExchangeError (errorReason + '' + errorMessage);
             }
         }
-        return this.parseOrder (response);
+        const market = undefined;
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -423,6 +430,7 @@ export default class alephx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
         const request: Dict = {
             'id': id, // order id
         };
@@ -434,7 +442,8 @@ export default class alephx extends Exchange {
                 throw new OrderNotFound (this.id + ' fetchOrder() error ' + errorReason);
             }
         }
-        return this.parseOrder (response);
+        const market = undefined;
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
@@ -451,6 +460,7 @@ export default class alephx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
         const response = await this.v1PrivateGetOrders ();
         const market = undefined;
         return this.parseOrders (response, market, since, limit);
@@ -470,6 +480,7 @@ export default class alephx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        await this.loadMarkets ();
         const response = await this.v1PrivateGetTrades ();
         const trades = this.safeList (response, 'data');
         const market = undefined;
@@ -530,6 +541,9 @@ export default class alephx extends Exchange {
         //     fees: []
         //   }
         // ]
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
         const traderOrderId = (traderSide === 'buy') ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
@@ -539,7 +553,7 @@ export default class alephx extends Exchange {
             'info': trade,
             'timestamp': this.parse8601 (createdDateTime),
             'datetime': createdDateTime,
-            'symbol': this.safeString (trade, 'symbol'),
+            'symbol': symbol,
             'type': 'gtc',
             'side': traderSide,
             'takerOrMaker': undefined,
@@ -566,6 +580,7 @@ export default class alephx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        await this.loadMarkets ();
         const filters = [];
         const filter: Dict = {
             'field': 'order_id',
@@ -658,7 +673,8 @@ export default class alephx extends Exchange {
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const code = this.safeString (balance, 'asset');
+            const asset = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (asset);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'locked');
