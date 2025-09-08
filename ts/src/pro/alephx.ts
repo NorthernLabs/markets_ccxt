@@ -104,6 +104,7 @@ export default class alephx extends alephxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        await this.loadMarkets ();
         const name = 'trades';
         const trades = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
@@ -124,6 +125,7 @@ export default class alephx extends alephxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
         const name = 'orders';
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
@@ -182,6 +184,9 @@ export default class alephx extends alephxRest {
         //         fee: null,
         //         fee_asset: null
         //       }
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
         const traderOrderId = (traderSide === 'buy') ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
@@ -191,7 +196,7 @@ export default class alephx extends alephxRest {
             'info': trade,
             'timestamp': this.parse8601 (createdDateTime),
             'datetime': createdDateTime,
-            'symbol': this.safeString (trade, 'symbol'),
+            'symbol': symbol,
             'type': 'gtc',
             'side': traderSide,
             'takerOrMaker': undefined,
@@ -283,6 +288,9 @@ export default class alephx extends alephxRest {
         //         sequence_id: 187,
         //         settled_quantity: '0'
         //       }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'idempotency_key');
         const createdDateTime = this.safeString (order, 'inserted_at');
@@ -290,7 +298,7 @@ export default class alephx extends alephxRest {
         const updatedDateTime = this.safeString (order, 'updated_at');
         return this.safeOrder ({
             'info': order,
-            'symbol': this.safeString (order, 'symbol'),
+            'symbol': symbol,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': this.parse8601 (createdDateTime),
