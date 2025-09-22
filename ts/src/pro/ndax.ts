@@ -15,7 +15,10 @@ export default class ndax extends ndaxRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchTicker': true,
