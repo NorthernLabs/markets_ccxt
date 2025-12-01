@@ -2495,7 +2495,7 @@ export default class ndax extends Exchange {
         const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
         let templateType = undefined;
         if (expectedTemplateName !== undefined) {
-          templateType = this.findTemplate (templateTypes, expectedTemplateName);
+            templateType = this.findTemplate (templateTypes, expectedTemplateName);
         }
         if (templateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
@@ -2629,13 +2629,13 @@ export default class ndax extends Exchange {
     }
 
     findTemplate (templates: any, templateName: string) {
-      for (let i = 0; i < templates.length; i++) {
-          const template = templates[i];
-          const currTemplateName = this.safeString (template, 'TemplateName')
-          if (currTemplateName === templateName) {
-              return template;
-          }
-      }
-      return undefined;
+        for (let i = 0; i < templates.length; i++) {
+            const template = templates[i];
+            const currTemplateName = this.safeString (template, 'TemplateName');
+            if (currTemplateName === templateName) {
+                return template;
+            }
+        }
+        return undefined;
     }
 }
