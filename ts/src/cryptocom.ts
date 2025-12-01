@@ -1982,7 +1982,7 @@ export default class cryptocom extends Exchange {
         const currency = this.safeCurrency (code); // for instance, USDC is not inferred from markets but it's still available
         const request: Dict = {
             'currency': currency['id'],
-            'amount': String(amount),
+            'amount': String (amount),
             'address': address,
         };
         if (tag !== undefined) {

@@ -12,7 +12,7 @@ import type { Balances, Int, OrderSide, OrderType, Order, Trade, Str, Market, Nu
  * @augments Exchange
  */
 export default class alephx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'alephx',
             'name': 'AlephX',
@@ -194,7 +194,7 @@ export default class alephx extends Exchange {
         // ]
         //
         const data = response;
-        let result = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const baseId = this.safeString (market, 'base_asset');
@@ -202,7 +202,7 @@ export default class alephx extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const isActive = this.safeBool (market, 'is_active');
-            let symbol = base + '/' + quote;
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': this.safeString (market, 'symbol'),
                 'symbol': symbol,
@@ -337,7 +337,7 @@ export default class alephx extends Exchange {
         // }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (order, 'inserted_at');
         const filledDateTime = this.safeString (order, 'filled_at');
@@ -542,7 +542,7 @@ export default class alephx extends Exchange {
         //   }
         // ]
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');

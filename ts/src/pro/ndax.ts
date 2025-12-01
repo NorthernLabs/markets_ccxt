@@ -586,7 +586,7 @@ export default class ndax extends ndaxRest {
         this.checkRequiredCredentials ();
         const name = 'AuthenticateUser';
         const messageHash = 'authenticated';
-        const url = this.urls['api']['ws']
+        const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -645,7 +645,7 @@ export default class ndax extends ndaxRest {
         //         }"
         // }
         const payload = this.safeValue (message, 'o', []);
-        if (payload["Authenticated"] == true) {
+        if (payload['Authenticated'] === true) {
             const promise = client.futures['authenticated'];
             promise.resolve (message);
             return;
@@ -695,8 +695,8 @@ export default class ndax extends ndaxRest {
         //     "n":"SubscribeAccountEvents",
         //     "o":"{ "Subscribed": true }"
         //  }
-        const payload = this.safeValue (message, 'o', []); 
-        if (payload["Subscribed"] != true) {
+        const payload = this.safeValue (message, 'o', []);
+        if (payload['Subscribed'] !== true) {
             throw new ExchangeError (this.id + ' failed to subscribe to account events.');
         }
     }
@@ -710,7 +710,7 @@ export default class ndax extends ndaxRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        return await this.watchAccountEvents ("balance", params);
+        return await this.watchAccountEvents ('balance', params);
     }
 
     handleBalance (client: Client, message) {
@@ -728,10 +728,10 @@ export default class ndax extends ndaxRest {
         //     "TotalDayWithdraws":0 //The total 24-hour withdraws for the specified product. UTC [Dec]
         // }
         //
-        const messageHash = "balance"
+        const messageHash = 'balance';
         const payload = this.safeValue (message, 'o', []);
-        const balance = this.parseBalance ([payload]);
-        client.resolve(balance, messageHash);
+        const balance = this.parseBalance ([ payload ]);
+        client.resolve (balance, messageHash);
     }
 
     /**
@@ -743,19 +743,19 @@ export default class ndax extends ndaxRest {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders (params = {}): Promise<Order[]> {
-        return await this.watchAccountEvents ("orders", params);
+        return await this.watchAccountEvents ('orders', params);
     }
 
     handleOrders (client: Client, message) {
         //
         // {
         //     "Side":"Sell",
-        //         // The side of your order. [String] Values are "Sell", 
+        //         // The side of your order. [String] Values are "Sell",
         //         // "Buy", "Short"
         //     "OrderId": 9849, //The Server-Assigned Order Id. [64-bit Integer]
         //     "Price": 97, //The Price of your order. [Decimal]
         //     "Quantity":1,
-        //         // The Quantity (Remaining if partially or fully executed) of 
+        //         // The Quantity (Remaining if partially or fully executed) of
         //         // your order. [Decimal]
         //     "Instrument":1, // The InstrumentId your order is for. [Integer]
         //     "Account":4, // Your AccountId [Integer]
@@ -772,16 +772,16 @@ export default class ndax extends ndaxRest {
         //     "QuantityExecuted":0, // The total executed quantity. [Decimal]
         //     "AvgPrice":0, // Avergage executed price. [Decimal]
         //     "ChangeReason":"NewInputAccepted"
-        //         // The reason for the order state change. [String] Values are 
+        //         // The reason for the order state change. [String] Values are
         //         // "NewInputAccepted", "NewInputRejected", "OtherRejected",
-        //         // "Expired", "Trade", SystemCanceled BelowMinimum", 
+        //         // "Expired", "Trade", SystemCanceled BelowMinimum",
         //         // "SystemCanceled NoMoreMarket", "UserModified"
         // }
         //
-        const messageHash = "orders"
+        const messageHash = 'orders';
         const payload = this.safeValue (message, 'o', []);
         const order = this.parseOrder (payload);
-        client.resolve([order], messageHash);
+        client.resolve ([ order ], messageHash);
     }
 
     /**
@@ -793,7 +793,7 @@ export default class ndax extends ndaxRest {
      * @returns {object} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async watchMyTrades (params = {}): Promise<Trade[]> {
-        return await this.watchAccountEvents ("myTrades", params);
+        return await this.watchAccountEvents ('myTrades', params);
     }
 
     handleMyTrades (client: Client, message) {
@@ -811,15 +811,15 @@ export default class ndax extends ndaxRest {
         //     "Value":0.95,  //Value [Decimal]
         //     "TradeTime":635978008210426109, // TimeStamp in Microsoft ticks format
         //     "ContraAcctId":3,
-        //         // The Counterparty of the trade. The counterparty is always 
+        //         // The Counterparty of the trade. The counterparty is always
         //         // the clearing account. [Integer]
-        //     "OrderTradeRevision":1, //Usually 1 
+        //     "OrderTradeRevision":1, //Usually 1
         //     "Direction":"NoChange" //"Uptick", "Downtick", "NoChange"
         // }
         //
-        const messageHash = "myTrades"
+        const messageHash = 'myTrades';
         const payload = this.safeValue (message, 'o', []);
         const trade = this.parseTrade (payload);
-        client.resolve([trade], messageHash);
+        client.resolve ([ trade ], messageHash);
     }
 }
