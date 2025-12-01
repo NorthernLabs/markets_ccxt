@@ -2301,9 +2301,9 @@ export default class kraken extends Exchange {
         //
         const error = this.safeList (response, 'error', []);
         if (error.length > 0) {
-          throw new ExchangeError ('Amend error ' + error.toString ());
+            throw new ExchangeError ('Amend error ' + error.toString ());
         }
-        const result = this.safeDict (response, 'result', {});
+        // const result = this.safeDict (response, 'result', {});
         // parseOrder treats amend_id as an order ID, which makes CCXT respond to editOrder with a brand new order ID.
         // This is a bad idea because the caller will think that the exchange order ID has changed.
         return this.safeOrder ({ 'id': id }, market);
