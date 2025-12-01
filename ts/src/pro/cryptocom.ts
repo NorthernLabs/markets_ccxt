@@ -1057,7 +1057,7 @@ export default class cryptocom extends cryptocomRest {
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeValue (message, 'data', []);
         if (data.length === 0) {
-          throw new ExchangeError (this.id + ' no data ' + this.json (message));
+            throw new ExchangeError (this.id + ' no data ' + this.json (message));
         }
         const positionBalances = this.safeValue (data[0], 'position_balances', []);
         this.balance['info'] = data;
