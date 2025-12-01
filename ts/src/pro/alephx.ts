@@ -9,7 +9,7 @@ import { Int, Trade, Order, Str, Dict } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class alephx extends alephxRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -185,7 +185,7 @@ export default class alephx extends alephxRest {
         //         fee_asset: null
         //       }
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeSymbol (marketId, market);
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
@@ -289,7 +289,7 @@ export default class alephx extends alephxRest {
         //         settled_quantity: '0'
         //       }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'idempotency_key');
