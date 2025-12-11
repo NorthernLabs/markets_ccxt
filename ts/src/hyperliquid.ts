@@ -4401,6 +4401,9 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
         }
+        if ('nonce' in params) {
+            globalParams['nonce'] = params['nonce'];
+        }
         if (id !== undefined) {
             order['id'] = id;
         }
