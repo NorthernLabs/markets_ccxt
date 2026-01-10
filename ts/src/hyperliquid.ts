@@ -1949,7 +1949,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'nonce' ]);
         const orderReq = [];
         let grouping = 'na';
@@ -2112,7 +2112,7 @@ export default class hyperliquid extends Exchange {
          */
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'clientOrderId', 'client_id', 'nonce' ]);
         const request: Dict = {
             'nonce': nonce,
@@ -2174,7 +2174,7 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         await this.initializeClient ();
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         const request: Dict = {
             'nonce': nonce,
@@ -2251,7 +2251,7 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         await this.initializeClient ();
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'clientOrderId', 'client_id', 'nonce' ]);
         const request: Dict = {
             'nonce': nonce,
@@ -2381,7 +2381,7 @@ export default class hyperliquid extends Exchange {
             };
             modifies.push (modifyReq);
         }
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         const modifyAction: Dict = {
             'type': 'batchModify',
@@ -2502,7 +2502,7 @@ export default class hyperliquid extends Exchange {
     async createVault (name: string, description: string, initialUsd: int, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         const request: Dict = {
             'nonce': nonce,
@@ -3329,7 +3329,7 @@ export default class hyperliquid extends Exchange {
         }
         const asset = this.parseToInt (market['baseId']);
         const isCross = (marginMode === 'cross');
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'leverage', 'nonce' ]);
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -3385,7 +3385,7 @@ export default class hyperliquid extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'marginMode', 'nonce' ]);
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -3459,7 +3459,7 @@ export default class hyperliquid extends Exchange {
         if (type === 'reduce') {
             sz = -sz;
         }
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         const updateAction: Dict = {
             'type': 'updateIsolatedMargin',
@@ -3531,7 +3531,7 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         if (this.inArray (fromAccount, [ 'spot', 'swap', 'perp' ])) {
             // handle swap <> spot account transfer
@@ -3664,7 +3664,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'vaultAddress', 'nonce' ]);
         let action: Dict = {};
         let sig = undefined;
@@ -4255,7 +4255,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     async reserveRequestWeight (weight: Num, params = {}): Promise<Dict> {
-        let nonce = this.safeInteger(params, 'nonce', this.milliseconds());
+        const nonce = this.safeInteger (params, 'nonce', this.milliseconds ());
         params = this.omit (params, [ 'nonce' ]);
         const request: Dict = {
             'nonce': nonce,
@@ -4410,11 +4410,11 @@ export default class hyperliquid extends Exchange {
         return [ order, globalParams ];
     }
 
-    customSafeOrder (order: Dict) {
+    customSafeOrder (order: Dict, market: Market = undefined) {
         // The 'cost' field returned by safeOrder is incorrect for hyperliquid,
         // it just multiplies limit price by amount. Let's just set it to undefined
         // rather than returning an unreliable value.
-        let safeOrder = this.safeOrder (order);
+        const safeOrder = this.safeOrder (order, market);
         if ('cost' in safeOrder) {
             safeOrder['cost'] = undefined;
         }
