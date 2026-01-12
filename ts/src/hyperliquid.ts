@@ -2090,7 +2090,7 @@ export default class hyperliquid extends Exchange {
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
-            orders.push (this.customSafeOrder ({
+            orders.push (this.safeOrder ({
                 'info': status,
                 'status': status,
             }));
@@ -2234,7 +2234,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return [ this.customSafeOrder ({ 'info': response }) ];
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2923,7 +2923,7 @@ export default class hyperliquid extends Exchange {
         //
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
-            return this.customSafeOrder ({
+            return this.safeOrder ({
                 'info': order,
                 'status': 'rejected',
             });
@@ -2957,7 +2957,7 @@ export default class hyperliquid extends Exchange {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
-        return this.customSafeOrder ({
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
             'clientOrderId': this.safeString (entry, 'cloid'),
@@ -4408,16 +4408,5 @@ export default class hyperliquid extends Exchange {
             order['id'] = id;
         }
         return [ order, globalParams ];
-    }
-
-    customSafeOrder (order: Dict, market: Market = undefined) {
-        // The 'cost' field returned by safeOrder is incorrect for hyperliquid,
-        // it just multiplies limit price by amount. Let's just set it to undefined
-        // rather than returning an unreliable value.
-        const safeOrder = this.safeOrder (order, market);
-        if ('cost' in safeOrder) {
-            safeOrder['cost'] = undefined;
-        }
-        return safeOrder;
     }
 }
