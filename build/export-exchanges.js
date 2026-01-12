@@ -829,6 +829,9 @@ async function exportEverything () {
     const exchanges = await createExchanges (ids)
 
     if (isPartiaBuild) {
+        // For partial builds (when exchanges.cfg is non-empty or specific ids are passed),
+        // we still want to update exchanges.json because downstream transpilers rely on it.
+        exportExchangeIdsToExchangesJson (ids, wsIds)
         log.bright.cyan ('Using a partial build'.yellow, 'building only', ids)
         return
     }
