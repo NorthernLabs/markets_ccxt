@@ -1625,8 +1625,9 @@ export default class aster extends Exchange {
 
     parseBalance (response): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        const data = this.safeList2 (response, 'assets', 'balances', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1658,7 +1659,6 @@ export default class aster extends Exchange {
         let data = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPrivateGetV4Account (params);
-            data = this.safeList (response, 'assets', []);
             //
             //     [
             //         {
@@ -1681,7 +1681,6 @@ export default class aster extends Exchange {
             //
         } else if (type === 'spot') {
             response = await this.sapiPrivateGetV1Account (params);
-            data = this.safeList (response, 'balances', []);
             //
             //     [
             //         {
@@ -1694,7 +1693,7 @@ export default class aster extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchBalance() does not support ' + type + ' markets yet');
         }
-        return this.parseBalance (data);
+        return this.parseBalance (response);
     }
 
     /**
