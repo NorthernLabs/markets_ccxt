@@ -2474,28 +2474,39 @@ export default class ndax extends Exchange {
         const expectedTemplateName = this.safeString (params, 'templateName');
         params = this.omit (params, [ 'accountId', 'AccountId', 'templateName' ]);
         const currency = this.currency (code);
-        const withdrawTemplateTypesRequest: Dict = {
-            'omsId': omsId,
-            'AccountId': accountId,
-            'ProductId': currency['id'],
-        };
-        const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
-        //
-        //     {
-        //         "result": true,
-        //         "errormsg": null,
-        //         "statuscode": "0",
-        //         "TemplateTypes": [
-        //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
-        //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
-        //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
-        //         ]
-        //     }
-        //
-        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
         let templateType = undefined;
-        if (expectedTemplateName !== undefined) {
-            templateType = this.findTemplate (templateTypes, expectedTemplateName);
+        if (code !== 'SUI') {
+            const withdrawTemplateTypesRequest: Dict = {
+                'omsId': omsId,
+                'AccountId': accountId,
+                'ProductId': currency['id'],
+            };
+            const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+            //
+            //     {
+            //         "result": true,
+            //         "errormsg": null,
+            //         "statuscode": "0",
+            //         "TemplateTypes": [
+            //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+            //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+            //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+            //         ]
+            //     }
+            //
+            const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+            if (expectedTemplateName !== undefined) {
+                templateType = this.findTemplate (templateTypes, expectedTemplateName);
+            }
+        } else {
+            // Just use this template for SUI since fetching templates throws
+            // an error
+            // {'AccountProviderId': '128', 'TemplateName': 'sui', 'AccountProviderName': 'Bitgo-SUI'}
+            templateType = {
+                'AccountProviderId': '128',
+                'TemplateName': 'sui',
+                'AccountProviderName': 'Bitgo-SUI'
+            };
         }
         if (templateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
